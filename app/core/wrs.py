@@ -5,11 +5,10 @@ import shapely.wkt
 import shapely.geometry
 from shapely import speedups
 import json
-import requests
 from pathlib import Path
 
 class ConvertToWRS:
-    def __init__(self, shapefile=Path("wrs/WRS2_descending.shp")):
+    def __init__(self, shapefile=Path("assets/wrs/WRS2_descending.shp")):
         speedups.disable()
         self.shapefile = ogr.Open(str(shapefile))
         self.layer = self.shapefile.GetLayer(0)
