@@ -9,41 +9,74 @@
         crossorigin=""/>
     <link rel="stylesheet" href="/static/css/style.css">
      <!-- Make sure you put this AFTER Leaflet's CSS -->
-     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+     <script src="https://unpkg.com/vue@next"></script>
      
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
         integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
         crossorigin="">
     </script>
-    <script src="https://unpkg.com/proj4"></script>
+    
+    <!-- <script src="https://unpkg.com/proj4"></script>
     <script src="https://unpkg.com/georaster"></script>
     <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
-    <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
+    <script src="https://cdn.jsdelivr.net/npm/geotiff"></script> -->
     
     <title>SGM Opendatacube</title>
 </head>
 <body>
     <div id="app" class="container">
-        <div id="menu" class="menu">
-            <h1>Поиск</h1>
-            <h3>Регион поиска:</h3>
-            <div>
-                Широта:
-                <input v-model="roi.minlat" size=8>
-                <input v-model="roi.maxlat" size=8>
+        <div class="panel">
+            <div id="menu" class="menu">
+                <div class="search_menu">
+                    <h1>Поиск</h1>
+                    <div class="input_group">
+                        <label>
+                            Широта:
+                            <input v-model="roi.minlat" size=8>
+                            <input v-model="roi.maxlat" size=8>
+                        </label>
+                    </div>
+                    <div class="input_group">
+                        <label>
+                            Долгота:
+                            <input v-model="roi.minlon" size=8>
+                            <input v-model="roi.maxlon" size=8>
+                        </label>
+                    </div>
+                    <div class="input_group">
+                        <label>
+                            Даты:
+                            <input v-model="dates.date1" size=8>
+                            <input v-model="dates.date2" size=8>
+                        </label>
+                    </div>
+                    <button id="search" v-on:click="search">Искать</button>
+                </div>
+                
+                <div class="process_menu">
+                    <h1>Обработка</h1>
+                    <h2>Выбрано файлов: [[ itemsToProcess.length ]]</h2>
+                    <div class="input_group">
+                        <label>
+                            Алгоритм:
+                        <select v-model="algorithm">
+                            <option disabled value="">Выберете алгоритм</option>
+                            <option value="rgb">Псевдоцветное изображение</option>
+                            <option value="pan">Панхроматическое изображение</option>
+                            <option value="ndvi">NDVI</option>
+                        </select>
+                        </label>
+                    </div>
+                    <button id="process" v-on:click="process">Обработать</button>
+                </div>
+
             </div>
-            <div>
-                Долгота:
-                <input v-model="roi.minlon" size=8>
-                <input v-model="roi.maxlon" size=8>
+            
+            <div v-if="loading" class="loader">
             </div>
-            <div>
-                Даты:
-                <input v-model="dates.date1" size=12>
-                <input v-model="dates.date2" size=12>
+            <div class="items">
+                <search-item v-for="item in items" :item="item" :key="item.id" v-model="itemsToProcess"></search-item>
             </div>
-            <button id="search" v-on:click="search">Искать</button>
-            <search-item v-for="item in items" v-bind:item="item"></search-item>
         </div>
         <div id="mapid"></div>
     </div>

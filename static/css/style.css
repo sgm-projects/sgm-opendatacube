@@ -10,64 +10,28 @@ body
     width: 100%;
 }
 
-.sidenav {
-    height: 100%;
-    width: 0;
-    position: fixed;
-    z-index: 1;
-    top: 0;
-    left: 0;
-    background-color: #111;
-    overflow-x: hidden;
-    padding-top: 60px;
-    transition: 0.5s;
-}
-
-.sidenav .closebtn {
-    position: absolute;
-    top: 0;
-    right: 25px;
-    font-size: 36px;
-    margin-left: 50px;
-}
-
-.menu_button {
-    font-size: 36px;
-    margin-left: 50px;
-}
-
-.legend {
-    line-height: 18px;
-    color: #555;
-}
-.legend i {
-    width: 18px;
-    height: 18px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
-}
-
-.info {
-    padding: 6px 8px;
-    font: 14px/16px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255,255,255,0.8);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-}
-
 .container {
     position: fixed;
     width: 100%;
-    height: 100%;
     display: flex;
 }
 
-.menu {
+.panel {
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
     width: 30%;
     height: 100%;
-    overflow-x:scroll;
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
+}
+
+.menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 #mapid {
@@ -76,11 +40,11 @@ body
 }
 
 .loader {
-    border: 16px solid #f3f3f3; /* Light grey */
-    border-top: 16px solid #3498db; /* Blue */
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
     border-radius: 50%;
-    width: 120px;
-    height: 120px;
+    width: 32px;
+    height: 32px;
     animation: spin 2s linear infinite;
     }
 
@@ -91,7 +55,30 @@ body
 
 .item {
     border: 2px solid #b3b3b3;
-    margin: 10px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
     padding: 10px;
+    margin-top: 20px;
 }
 
+
+input[type="checkbox"] {
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    flex: 30%
+}
+
+.image {
+    width: 100%;
+    flex: 100%;
+}
+
+.info {
+    flex: 70%;
+}
+
+.selected {
+    background-color: #3498db;
+}

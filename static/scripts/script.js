@@ -1,31 +1,22 @@
-Vue.component('search-item', {
-    props: ['item'],
-    template: `
-        <div class="item">
-        
-        <h5>{{ item.id }}</h5>
-        <h5>{{ item.properties.datetime }}</h5>
-            <img :src="item.assets.thumbnail.href" width="350px">
-        </div>
-    `
-})
-
-
-var app = new Vue({
-    el: '#app',
-    data: {
-        roi: {
-            minlat: 0,
-            maxlat: 90,
-            minlon: 100,
-            maxlon: 120
-        },
-        dates: {
-            date1: new Date().toISOString().split('T')[0],
-            date2: new Date().toISOString().split('T')[0]
-        },
-        items: [],
-        itemsToProcess: []
+const App = {
+    data()  {
+        return {
+            roi: {
+                minlat: 0,
+                maxlat: 90,
+                minlon: 100,
+                maxlon: 120
+            },
+            dates: {
+                date1: new Date().toISOString().split('T')[0],
+                date2: new Date().toISOString().split('T')[0]
+            },
+            items: [],
+            loading: false,
+            itemsToProcess: [],
+            polygons: [],
+            algorithm: ''
+        }
     },
     mounted: function () {
         this.map = L.map('mapid').setView([43.079, 131.883], 10)
@@ -43,6 +34,27 @@ var app = new Vue({
         this.map.on('move', (e) => { this.update_roi()})
     },
     methods: {
+        process() {
+            for (var i = 0; i < this.items.length; i++) {
+                this.items[i].loading = true
+            }
+        },
+        // process: async function() {
+        //     let options = {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(this.itemsToProcess)
+        //     }
+        //     url = `/process?algorithm=${this.algorithm}`
+        //     let response = await fetch(url, options);
+        //     if (response.ok) {
+        //         let json = await response.json();
+        //     } else {
+        //         alert("Ошибка HTTP: " + response.status);
+        //     }
+        // },
         update_roi: function () {
             let bounds = this.map.getBounds()
             this.roi = {
@@ -57,25 +69,100 @@ var app = new Vue({
             
             url = `${base_url}?lon1=${this.roi.minlon}&lat1=${this.roi.minlat}&lon2=${this.roi.maxlon}&lat2=${this.roi.maxlat}&limit=10&date1=${this.dates.date1}&date2=${this.dates.date2}`
             console.log("search for " + url)
-        
+            this.loading = true
             let response = await fetch(url);
             if (response.ok) {
                 let json = await response.json();
+                this.loading = false
                 this.items = json["items"]
                 console.log(json)
                 
-                // clear_polygons()
-                // add_polygons(json["items"])
+                this.clear_polygons()
+                this.add_polygons()
             
             } else {
                 alert("Ошибка HTTP: " + response.status);
             }
+        },
+        clear_polygons() {
+            for (var i = 0; i< this.polygons.length; i++) {
+                    this.polygons[i].remove()
+                }
+            this.polygons.splice(0, polygons.length)
+        },
+        add_polygons() {
+            for (var i = 0; i < this.items.length; i++) {
+                coords = this.items[i]["geometry"]["coordinates"][0]
+                latlngs = []
+                for (var j = 0; j < coords.length; j++) {
+                    latlngs.push([coords[j][1], coords[j][0]])
+                }
+                var polygon = L.polygon(latlngs)
+                polygon.addTo(this.map)
+                polygon.id = this.items[i].id
+                this.polygons.push(polygon)
+            }
+        },
+        update_polygons() {
+            for (var i = 0; i < this.polygons.length; i++) {
+                this.polygons[i].setStyle({color: '#3388ff'})
+                for (var j = 0; j < this.itemsToProcess.length; j++) {
+                    console.log(this.polygons[i].id, this.itemsToProcess[j].id)
+                    if (this.polygons[i].id == this.itemsToProcess[j].id) {
+                        this.polygons[i].setStyle({color: "#ff3333"})
+                        break
+                    }
+                }
+            }
         }
-
+    },
+    watch: {
+        itemsToProcess(newItems, oldItems) {
+            this.update_polygons()
+        }
     },
     delimiters: ['[[',']]']
+  }
+  
+const app = Vue.createApp(App)
+
+app.component('search-item', {
+    data() {
+        return {
+            checked: false,
+        }
+    },
+    props: ['item', 'modelValue'],
+    emits: ['update:modelValue'],
+    computed: {
+        value: {
+          get() {
+            return this.modelValue
+          },
+          set(value) {
+            this.$emit('update:modelValue', value)
+          }
+        }
+    },
+    template: `
+        <div :class="{item: true, selected: checked}">
+        <div>
+            <h5>{{ item.id }}</h5>
+            <h5>{{ item.properties.datetime }}</h5>
+        </div>
+        <div v-if="item.loading" class="loader">
+        </div>
+        <div>
+            <input type="checkbox" :value="item" v-model="value" @change="checked = !checked">
+        </div>
+        <div class="image">
+            <img :src="item.assets.thumbnail.href" class="image">
+        </div>
+        </div>
+    `
 })
 
+app.mount('#app')
 
   var popup = L.popup();
 
