@@ -75,4 +75,8 @@ def add_dataset(doc):
     index = dc.index
     resolver = Doc2Dataset(index)
     dataset, error = resolver(doc, 'file:///tmp/test-dataset.json')
+    print('add dataset', dataset)
     index.datasets.add(dataset)
+
+def add_item(item):
+    add_dataset(item_to_metadata(item))
