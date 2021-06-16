@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+    <link rel="stylesheet" href="/static/css/style.css">
+     <!-- Make sure you put this AFTER Leaflet's CSS -->
+     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+     
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin="">
+    </script>
+    <script src="https://unpkg.com/proj4"></script>
+    <script src="https://unpkg.com/georaster"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+    <script src="https://cdn.jsdelivr.net/npm/geotiff"></script>
+    
+    <title>SGM Opendatacube</title>
+</head>
+<body>
+    <div id="app" class="container">
+        <div id="menu" class="menu">
+            <h1>Поиск</h1>
+            <h3>Регион поиска:</h3>
+            <div>
+                Широта:
+                <input v-model="roi.minlat" size=8>
+                <input v-model="roi.maxlat" size=8>
+            </div>
+            <div>
+                Долгота:
+                <input v-model="roi.minlon" size=8>
+                <input v-model="roi.maxlon" size=8>
+            </div>
+            <div>
+                Даты:
+                <input v-model="dates.date1" size=12>
+                <input v-model="dates.date2" size=12>
+            </div>
+            <button id="search" v-on:click="search">Искать</button>
+            <search-item v-for="item in items" v-bind:item="item"></search-item>
+        </div>
+        <div id="mapid"></div>
+    </div>
+
+    <script src="/static/scripts/script.js"></script>
+</body>
+</html>
