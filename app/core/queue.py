@@ -1,11 +1,11 @@
-from redis import from_url
+import redis as rd
 from rq import Queue
 from rq.job import Job
 from uuid import uuid4
 from datetime import timedelta
 import app.core.config as config
 
-red = from_url(config.REDIS_URL)
+red = rd.from_url(config.REDIS_URL)
 queue = Queue(connection=red, default_timeout=3600)
 
 

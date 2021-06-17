@@ -86,6 +86,7 @@ def get_result(job_id):
         res = job.result
         if 'error' in res:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=res['error'])
+        res["ready"] = True
         return res
     else:
         return {"ready": False}
@@ -98,7 +99,7 @@ def get_result(job_id):
 def process(item: dict, request: Request, algorithm: str = None):
     print(algorithm)
     print(item)
-    # if algorithm == 'rgb':
-    #     res = create_task(rgb_task, item)
-    # res['url'] = request.url_for('get_result', job_id=res['job_id'])
-    return {"success": True}
+    if algorithm == 'rgb':
+        res = create_task(rgb_task, item)
+    res['url'] = request.url_for('get_result', job_id=res['job_id'])
+    return res

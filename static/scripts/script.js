@@ -50,16 +50,29 @@ const App = {
                         url = `/process?algorithm=${this.algorithm}`
                         console.log("Processing item: ", item.id)
                         const f = await fetch(url, options)
-                        const res = await f.json()
-                        if (res["success"]) {
-                            this.items[i].loading = false
+                        console.log("FETCHED")
+                        if (f.status == 201) {
+                            console.log("201 RESULT")
+                            const res = await f.json()
+                            this.items[i].intervalId = setInterval(async (item, url) => {
+                                const fe = await fetch(url)
+                                console.log("FETCHED2", fe)
+                                const json = await fe.json()
+                                if (json["ready"]) {
+                                    console.log("READY ", json)
+                                    item.loading = false
+                                    item.loaded = true
+                                    item.href = json["href"]
+                                    clearInterval(item.intervalId)
+                                }
+                            }, 3000, item, res["url"]);
+                            console.log("INTERVAL id", this.items[i].intervalId)
                         }
-
-                        // this.items[i].intervalId = setInterval(async (item) => {
-                        // }, 3000);
+                        
                     }
                 }
             }
+            console.log("PROCESS finished", this.items)
         },
         update_roi: function () {
             let bounds = this.map.getBounds()
@@ -71,6 +84,7 @@ const App = {
             }
         },
         search: async function() {
+            this.items.splice(0, this.items.length)
             base_url = "http://127.0.0.1:8000/catalog/getforregion"
             
             url = `${base_url}?lon1=${this.roi.minlon}&lat1=${this.roi.minlat}&lon2=${this.roi.maxlon}&lat2=${this.roi.maxlat}&limit=10&date1=${this.dates.date1}&date2=${this.dates.date2}`
@@ -158,6 +172,7 @@ app.component('search-item', {
         </div>
         <div v-if="item.loading" class="loader">
         </div>
+        <a v-if="item.loaded" :href="item.href" class="btn" download="">Скачать</a>
         <div>
             <input type="checkbox" :value="item" v-model="value" @change="checked = !checked">
         </div>

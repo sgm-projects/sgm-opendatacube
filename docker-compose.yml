@@ -17,12 +17,27 @@ services:
     ports:
       - "6379:6379"
 
-#   web:
-#     build: .
-#     command: python manage.py runserver 0.0.0.0:8000
-#     volumes:
-#       - .:/code
-#     ports:
-#       - "8000:8000"
-#     depends_on:
-#       - db
+  web:
+    build: .
+    image: web
+    container_name: web
+    command: uvicorn app.main:app --host 0.0.0.0
+    volumes:
+      - .:/usr/src/app
+    environment: 
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    image: web
+    environment: 
+      - REDIS_URL=redis://redis:6379
+    command: rq worker --url redis://redis:6379 --with-scheduler
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - redis
