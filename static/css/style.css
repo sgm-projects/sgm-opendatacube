@@ -10,11 +10,24 @@ body
     width: 100%;
 }
 
-.container {
+.main-container {
     position: fixed;
     width: 100%;
     height: 100%;
     display: flex;
+}
+
+.main-menu {
+    flex-grow: 0;
+    overflow-y: scroll;
+    height: 100%;
+    width: 30%;
+}
+
+#mapid {
+    flex-grow: 3;
+    width: 70%;
+    height: 100%;
 }
 
 .panel {
@@ -26,17 +39,6 @@ body
     display: flex;
     flex-direction: column;
     overflow-y: scroll;
-}
-
-.menu {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
-
-#mapid {
-    width: 70%;
-    height: 100%;
 }
 
 .loader {
@@ -63,17 +65,13 @@ body
 }
 
 
-input[type="checkbox"] {
+/* input[type="checkbox"] {
     width: 50px;
     height: 50px;
     display: inline-block;
     flex: 30%
-}
+} */
 
-.image {
-    width: 100%;
-    flex: 100%;
-}
 
 .info {
     flex: 70%;

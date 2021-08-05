@@ -10,7 +10,7 @@ from pathlib import Path
 import app.core.config as config
 from pydantic import BaseModel
 from datacube import Datacube
-from app.core.process import rgb_task
+from app.core.process import rgb_task, get_band_task, calculate_index_task
 from rq.job import Job
 
 print("Loading WRS...", end='')
@@ -27,22 +27,14 @@ templates = Jinja2Templates(directory="templates")
 async def root(request: Request):
     return templates.TemplateResponse("index.html", context={"request": request})
 
-@app.get("/catalog/getforpoint")
-async def getforpoint(lon: float, lat: float, date1: str = None, date2: str = None, limit: int = 10, days: int = 7):
-    wrs_list = wrs.get_wrs(lat, lon)
-    if not date1 or not date2:
-        dates = None
+@app.get("/catalog/search")
+async def search(lon1: float, lat1: float, lon2: float = None, lat2: float = None, date1: str = None, date2: str = None, limit: int = 10, days: int = 7):
+    if not lon2 or not lat2:
+        lon2 = lon1
+        lat2 = lat1
     else:
-        dates = (date1, date2)
-    items = await get_items(wrs_list, dates=dates, limit=limit, days=days)
-    for item in items:
-        add_item(item)
-    return items
-    
-@app.get("/catalog/getforregion")
-async def getforregion(lon1: float, lat1: float, lon2: float, lat2: float, date1: str = None, date2: str = None, limit: int = 10, days: int = 7):
-    lon1, lon2 = min(lon1, lon2), max(lon1, lon2)
-    lat1, lat2 = min(lat1, lat2), max(lat1, lat2)
+        lon1, lon2 = min(lon1, lon2), max(lon1, lon2)
+        lat1, lat2 = min(lat1, lat2), max(lat1, lat2)
     if not date1 or not date2:
         dates = None
     else:
@@ -51,7 +43,7 @@ async def getforregion(lon1: float, lat1: float, lon2: float, lat2: float, date1
     items = await get_items(wrs_list, dates=dates, limit=limit, days=days)
     for item in items["items"]:
         print(item)
-        add_item(item)
+        # add_item(item)
     return items
 
 @app.get("/catalog/products")
@@ -93,13 +85,38 @@ def get_result(job_id):
 
 
 @app.post(
-    "/process",
+    "/process/getband",
     status_code=status.HTTP_201_CREATED
 )
-def process(item: dict, request: Request, algorithm: str = None):
-    print(algorithm)
+def get_band(item: dict, request: Request, band: str = None):
+    print('get_band')
     print(item)
-    if algorithm == 'rgb':
-        res = create_task(rgb_task, item)
+
+    add_item(item)
+    
+    if band not in [f'B{i + 1}' for i in range(11)]:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Неверные аргументы')
+    
+    params = {"item": item, "band": band}
+
+    res = create_task(get_band_task, params)
+    res['url'] = request.url_for('get_result', job_id=res['job_id'])
+    return res
+
+@app.post(
+    "/process/calculateindex",
+    status_code=status.HTTP_201_CREATED
+)
+def calculate_index(item: dict, request: Request, index: str = None):
+    print('calculate_index')
+    print(item)
+    add_item(item)
+
+    if index.lower() not in ['rgb', 'ndvi']:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail='Неверные аргументы')
+    
+    params = {"item": item, "index": index}
+    res = create_task(calculate_index_task, params)
+    
     res['url'] = request.url_for('get_result', job_id=res['job_id'])
     return res

@@ -10,6 +10,34 @@ from pyproj import Transformer
 import numpy as np
 import app.core.config as config
 
+def clear_files_for_job(job_id):
+    path = config.UPLOAD_DIR / job_id
+    if path.exists():
+        for f in path.iterdir():
+            f.unlink()
+        path.rmdir()
+    path = config.DOWNLOAD_DIR / job_id
+    if path.exists():
+        for f in path.iterdir():
+            f.unlink()
+        path.rmdir()
+
+def get_or_create_dir(root, job_id):
+    path = root / job_id
+    if not path.exists():
+        path.mkdir()
+    return path
+
+def generate_filename(path, prefix, name):
+    return path / f'{prefix}_{name}'
+
+def error(message):
+    return {'success': False, 'error': message}
+
+def ready(results):
+    return {'ready': True, 'results': results}
+
+
 
 def scale_array(arr):
     mx = 2**16 - 1
@@ -61,7 +89,7 @@ def get_thumbnail(item, band='B8', factor=1):
 def get_band_task(params: dict):
     item = params.get('item')
     band = params.get('band', 'B8')
-    factor = params.get('factor', 1)
+    factor = params.get('factor', 3)
     result = get_thumbnail(item, band, factor)
     return result
 
@@ -81,5 +109,34 @@ def rgb_task2(item):
     filename = f'{item["id"]}_{suffix}.tif'
     
     path = write_cog(ds.to_array(), Path('/static') / filename, )
+    return {"success": True, "url": str(path)}
+
+
+def calculate_index_task(params):
+    item = params.get('item')
+    index = params.get('index', 'rgb')
+    dc = Datacube(config="datacube.conf")
+    product = "ls8_level1_usgs"
+    x = (item["bbox"][0], item["bbox"][2])
+    y = (item["bbox"][1], item["bbox"][3])
+    time = item["properties"]["datetime"].split("T")[0]
+    measurements = ["band_2", "band_3", "band_4"]
+
+    query = {
+        'x': x,
+        'y': y,
+        'time': time,
+        'measurements': ['nbart_red', 'nbart_green', 'nbart_blue'],
+        'output_crs': 'EPSG:4326',
+        'resolution': (-0.001, 0.001),
+    }
+
+    ds = dc.load(product=product, **query)
+    print(ds)
+    rgb_da = ds.to_array()
+    suffix = 'rgb'
+    filename = f'{item["id"]}_{suffix}.tif'
+    path = config.STATIC_DIR / filename
+    write_cog(geo_im=rgb_da, fname='rgb.tif', overwrite=True)
     return {"success": True, "url": str(path)}
 
